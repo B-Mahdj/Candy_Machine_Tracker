@@ -4,7 +4,8 @@ const web3 = require("@solana/web3.js");
 const Discord = require('discord.js');
 const CANDY_MACHINE_PROGRAM_ID = process.env.CANDY_MACHINE_PROGRAM_ID;
 const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
-var unix_timestamp = getActualUnixTimestamp();
+//var unix_timestamp = getActualUnixTimestamp();
+var unix_timestamp = 1654358257;
 var lastTransactionSignatureFetched = null;
 
 export const solana = new web3.Connection(process.env.RPC_URL);

@@ -104,25 +104,23 @@ const getCandyMachineState = async (
   async function processCandyMachineData (candyMachineRawData){
     var candyMachineId:string = String(candyMachineRawData.id);
     var candyMachineItemPrice:string = String(candyMachineRawData.state.price.toNumber() / 1000000000);
+    var candyMachineGoLiveDate:string = String(new Date(candyMachineRawData.state.goLiveDate.toNumber() * 1000).toLocaleDateString("en-US"));
     var candyMachineItemsAvailable:string = String(candyMachineRawData.state.itemsAvailable);
     var candyMachineItemsRemaining:string = String(candyMachineRawData.state.itemsRemaining);
     var candyMachineIsWlOnly:string = String(candyMachineRawData.state.isWhitelistOnly);
     var candyMachineIsActive:string = String(candyMachineRawData.state.isActive);
     var candyMachineIsSoldOut:string = String(candyMachineRawData.state.isSoldOut);
     var candyMachineTokenMint:string = String(candyMachineRawData.state.tokenMint);
-    var candyMachineWhiteListSettings:string = String(candyMachineRawData.state.whitelistMintSettings);
     if(candyMachineRawData.state.hiddenSettings != null){
-      var candyMachineGoLiveDate:string = String(new Date(candyMachineRawData.state.goLiveDate.toNumber() * 1000).toLocaleDateString("en-US"));
       var candyMachineHiddenSettingsName:string = String(candyMachineRawData.state.hiddenSettings.name);
       var candyMachineHiddenSettingsUri:string = String(candyMachineRawData.state.hiddenSettings.uri);
     }
     else {
       var candyMachineHiddenSettingsName:string = "Collection Name Not found";
       var candyMachineHiddenSettingsUri:string = "https://upload.wikimedia.org/wikipedia/commons/b/b9/Solana_logo.png";
-      var candyMachineGoLiveDate:string = "Not setup";
     }
-    if (candyMachineRawData.state.candyMachineWhiteListSettings != null){
-      candyMachineTokenMint = String(candyMachineRawData.state.candyMachineWhiteListSettings.mint);
+    if (candyMachineRawData.state.whitelistMintSettings != null){
+      candyMachineTokenMint = String(candyMachineRawData.state.whitelistMintSettings.mint.toString());
     }
     var candyMachineDataProcessed = {
       id: candyMachineId,
