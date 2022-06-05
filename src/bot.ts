@@ -8,7 +8,7 @@ const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
 //var unix_timestamp = getActualUnixTimestamp();
 var unix_timestamp = 1654358257;
 var lastTransactionSignatureFetched = null;
-var transactionSentArrays:string[];
+var transactionSentArrays:string[] = [];
 
 export const solana = new web3.Connection(process.env.RPC_URL);
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS] });
