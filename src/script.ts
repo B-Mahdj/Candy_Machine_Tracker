@@ -1,4 +1,5 @@
 import * as anchor from '@project-serum/anchor';
+import axios from 'axios';
 require('dotenv').config();
 
 export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
@@ -48,6 +49,12 @@ interface CandyMachineState {
   };
   retainAuthority: boolean;
 }
+
+type ExpectedResponseUri = {
+  name: string;
+  description: string;
+  image: string;
+};
 
 const getCandyMachineState = async (
     anchorWallet: anchor.Wallet,
@@ -113,7 +120,13 @@ const getCandyMachineState = async (
     var candyMachineTokenMint:string = String(candyMachineRawData.state.tokenMint);
     if(candyMachineRawData.state.hiddenSettings != null){
       var candyMachineHiddenSettingsName:string = String(candyMachineRawData.state.hiddenSettings.name);
-      var candyMachineHiddenSettingsUri:string = String(candyMachineRawData.state.hiddenSettings.uri);
+      if(candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpeg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".png") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".gif")){
+        var candyMachineHiddenSettingsUri:string = String(candyMachineRawData.state.hiddenSettings.uri);
+      }
+      else {
+        var metaDataFetched = await getMetaDataFromUrl(candyMachineRawData.state.hiddenSettings.uri);
+        var candyMachineHiddenSettingsUri:string = String(metaDataFetched.image);
+      }
     }
     else {
       var candyMachineHiddenSettingsName:string = "Collection Name Not found";
@@ -136,6 +149,15 @@ const getCandyMachineState = async (
       hiddenSettingsUri : candyMachineHiddenSettingsUri,
     };
     return candyMachineDataProcessed;
+}
+
+async function getMetaDataFromUrl(url: string) {
+  const response = await axios.get(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  return response.data;
 }
 
   export {getCandyMachineState, processCandyMachineData};
