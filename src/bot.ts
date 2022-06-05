@@ -8,6 +8,7 @@ const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
 //var unix_timestamp = getActualUnixTimestamp();
 var unix_timestamp = 1654358257;
 var lastTransactionSignatureFetched = null;
+var transactionSentArrays:string[];
 
 export const solana = new web3.Connection(process.env.RPC_URL);
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS] });
@@ -46,36 +47,49 @@ async function main(lastTransaction){
 }
 
 async function sendDataDiscord(candyMachineData){
-    var channel = await client.channels.fetch('733270130913443860');
-    const embed = new Discord.MessageEmbed()
-    .setColor(0x3498DB)
-    .setTitle(candyMachineData.hiddenSettingsName)
-    .setURL(`https://explorer.solana.com/address/${candyMachineData.id}`)
-    .setImage(candyMachineData.hiddenSettingsUri)
-    /*
-    * Inline fields may not display as inline if the thumbnail and/or image is too big.
-    */
-    .addFields(
-        {name: "Price",value : candyMachineData.price,inline: true},
-        {name: "Supply Available",value: candyMachineData.itemsAvailable + " / " + candyMachineData.itemsRemaining,inline: true},
-        {name: "Go Live Date",value: candyMachineData.goLiveDate,inline: true},
-        {name: "IsWLOnly",value: candyMachineData.isWlOnly,inline: true},
-        {name: "IsActive",value: candyMachineData.isActive,inline: true},
-        {name: "isSoldOut",value: candyMachineData.isSoldOut,inline: true}
-    )
-    /*
-    * Blank field, useful to create some space.
-    */
-    .addField("\u200b", "\u200b")
-    /*
-    * Takes a Date object, defaults to current date.
-    */
-    .setTimestamp()
-    if (candyMachineData.tokenMint != null){
-        embed.addField("Token Mint", candyMachineData.tokenMint);
+    //Chech the candy machine data to see if it is a new one
+    let newCandyMachine = true;
+    for(let i = 0; i < transactionSentArrays.length; i++){
+        if(transactionSentArrays[i] == candyMachineData.id){
+            newCandyMachine = false;
+        }
     }
-    channel.send({ embeds: [embed] });
-    console.log("Log : Message sent to discord");
+    if(newCandyMachine == true){
+        transactionSentArrays.push(candyMachineData.id);
+        var channel = await client.channels.fetch('733270130913443860');
+        const embed = new Discord.MessageEmbed()
+        .setColor(0x3498DB)
+        .setTitle(candyMachineData.hiddenSettingsName)
+        .setURL(`https://explorer.solana.com/address/${candyMachineData.id}`)
+        .setImage(candyMachineData.hiddenSettingsUri)
+        /*
+        * Inline fields may not display as inline if the thumbnail and/or image is too big.
+        */
+        .addFields(
+            {name: "Price",value : candyMachineData.price,inline: true},
+            {name: "Supply Available",value: candyMachineData.itemsAvailable + " / " + candyMachineData.itemsRemaining,inline: true},
+            {name: "Go Live Date",value: candyMachineData.goLiveDate,inline: true},
+            {name: "IsWLOnly",value: candyMachineData.isWlOnly,inline: true},
+            {name: "IsActive",value: candyMachineData.isActive,inline: true},
+            {name: "isSoldOut",value: candyMachineData.isSoldOut,inline: true}
+        )
+        /*
+        * Blank field, useful to create some space.
+        */
+        .addField("\u200b", "\u200b")
+        /*
+        * Takes a Date object, defaults to current date.
+        */
+        .setTimestamp()
+        if (candyMachineData.tokenMint != null){
+            embed.addField("Token Mint", candyMachineData.tokenMint);
+        }
+        channel.send({ embeds: [embed] });
+        console.log("Log : Message sent to discord");
+    }
+    else {
+        console.log("Log : Message not sent to discord because it is not a new candy machine");
+    }
 }
 
 async function getCandyMachineIdFromInitializedCandyMachine(transactions){
