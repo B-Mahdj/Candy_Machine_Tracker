@@ -158,8 +158,8 @@ export async function getConfigLines(pubKey){
           return true;
       }
     }
-    return false;
   }
+  return false;
 }
 
 async function getMetaDataFromUrl(url: string) {

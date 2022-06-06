@@ -1,6 +1,6 @@
 //import {getCandyMachineState, wallet, processCandyMachineData} from '../built/script';
 import {getConfigLines} from '../src/script';
-require('dotenv').config()
+require('dotenv').config();
 const web3 = require("@solana/web3.js");
 const solana = new web3.Connection(process.env.RPC_URL);
 
