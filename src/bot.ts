@@ -27,8 +27,8 @@ async function main(lastTransaction){
     let candyMachineIds = await getCandyMachineIdFromInitializedCandyMachine(transactions);
     console.log("Log : candyMachineIds", candyMachineIds);
     if(candyMachineIds.length > 0){
-        for(let i = 0; i < candyMachineIds.length; i++){
-            let candyMachineRawData = await getCandyMachineState(wallet, candyMachineIds[i], solana);
+        for(const element of candyMachineIds){
+            let candyMachineRawData = await getCandyMachineState(wallet, element, solana);
             console.log("Candy machine raw data :", candyMachineRawData);
             let candyMachineDataProcessed = await processCandyMachineData(candyMachineRawData);
             console.log("CandyMachineData processed : ", candyMachineDataProcessed);
@@ -49,12 +49,12 @@ async function main(lastTransaction){
 async function sendDataDiscord(candyMachineData){
     //Chech the candy machine data to see if it is a new one
     let newCandyMachine = true;
-    for(let i = 0; i < transactionSentArrays.length; i++){
-        if(transactionSentArrays[i] == candyMachineData.id){
+    for(const element of transactionSentArrays){
+        if(element == candyMachineData.id){
             newCandyMachine = false;
         }
     }
-    if(newCandyMachine == true){
+    if(newCandyMachine){
         transactionSentArrays.push(candyMachineData.id);
         var channel = await client.channels.fetch('733270130913443860');
         const embed = new Discord.MessageEmbed()
@@ -94,14 +94,14 @@ async function sendDataDiscord(candyMachineData){
 
 async function getCandyMachineIdFromInitializedCandyMachine(transactions){
     let id_to_return = [];
-    for (let i = 0; i < transactions.length; i++) {
-        console.log("Log : Processing transaction : ", transactions[i]);
-        let getTransaction = await solana.getTransaction(transactions[i].signature);
+    for (const transaction of transactions) {
+        console.log("Log : Processing transaction : ", transaction);
+        let getTransaction = await solana.getTransaction(transaction.signature);
         console.log("Log : getTransaction", getTransaction);
         if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: InitializeCandyMachine")){
             console.log("Log : InitializeCandyMachine found");
-            for(let y=0; y<getTransaction.transaction.message.accountKeys.length; y++){
-                let pubKey = new web3.PublicKey(getTransaction.transaction.message.accountKeys[y]);
+            for(const element of getTransaction.transaction.message.accountKeys){
+                let pubKey = new web3.PublicKey(element);
                 console.log("Log : AccountKeys found are :", pubKey.toString());
             }
             id_to_return.push(getTransaction.transaction.message.accountKeys[1]);
@@ -115,11 +115,11 @@ async function getNewSignaturesOfCandyMachineProgram(lastTransactionIdFetched){
     console.log("Log : getSignaturesForAdress will be called with params : ", lastTransactionIdFetched, publicKey);
     let transactions_returned_from_call = await solana.getSignaturesForAddress(publicKey, {limit: 20, until: lastTransactionIdFetched, commitment: "finalized"});
     let transactions_to_return = [];
-    for (let i = 0; i < transactions_returned_from_call.length; i++) {
-        console.log("Transaction fetched ", transactions_returned_from_call[i]);
-        if(transactions_returned_from_call[i].blockTime > unix_timestamp && transactions_returned_from_call[i].signature != lastTransactionIdFetched){
-            console.log("Log : New transaction found : ", transactions_returned_from_call[i]);
-            transactions_to_return.push(transactions_returned_from_call[i]);
+    for (const element of transactions_returned_from_call) {
+        console.log("Transaction fetched ", element);
+        if(element.blockTime > unix_timestamp && element.signature != lastTransactionIdFetched){
+            console.log("Log : New transaction found : ", element);
+            transactions_to_return.push(element);
         }
     }
     console.log("Log : Transactions found were returned");
@@ -128,15 +128,15 @@ async function getNewSignaturesOfCandyMachineProgram(lastTransactionIdFetched){
 
 async function clearDuplicateSignaturesInArray(array_of_transactions){
     let transactions_to_return = [];
-    for (let i = 0; i < array_of_transactions.length; i++) {
+    for (const element of array_of_transactions) {
         let transaction_found = false;
         for (let j = 0; j < transactions_to_return.length; j++) {
-            if(transactions_to_return[j].signature == array_of_transactions[i].signature){
+            if(transactions_to_return[j].signature == element.signature){
                 transaction_found = true;
             }
         }
         if(!transaction_found){
-            transactions_to_return.push(array_of_transactions[i]);
+            transactions_to_return.push(element);
         }
     }
     return transactions_to_return;
@@ -145,11 +145,11 @@ async function clearDuplicateSignaturesInArray(array_of_transactions){
 //Take one array and delete all the elements after we found a specific signature and return the new array
 async function deleteAfterSignature(array, signature){
     let newArray = [];
-    for(let i = 0; i < array.length; i++){
-        if(array[i].signature == signature){
+    for(const element of array){
+        if(element.signature == signature){
             break;
         }
-        newArray.push(array[i]);
+        newArray.push(element);
     }
     return newArray;
 }

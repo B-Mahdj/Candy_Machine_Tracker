@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor';
 import axios from 'axios';
 require('dotenv').config();
+import { solana } from './bot';
 
 export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
   process.env.CANDY_MACHINE_PROGRAM_ID,
@@ -103,30 +104,6 @@ const getCandyMachineState = async (
     };
   };
 
-  export const getCollectionPDA = async (
-    candyMachineAddress: anchor.web3.PublicKey,
-  ): Promise<[anchor.web3.PublicKey, number]> => {
-    return await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from('collection'), candyMachineAddress.toBuffer()],
-      CANDY_MACHINE_PROGRAM,
-    );
-  };
-
-  export const getMetaData = async (
-    mint: anchor.web3.PublicKey,
-  ): Promise<anchor.web3.PublicKey> => {
-    return (
-      await anchor.web3.PublicKey.findProgramAddress(
-        [
-          Buffer.from('metadata'),
-          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-          mint.toBuffer(),
-        ],
-        TOKEN_METADATA_PROGRAM_ID,
-      )
-    )[0];
-  };
-
   async function processCandyMachineData (candyMachineRawData){
     var candyMachineId:string = String(candyMachineRawData.id);
     var candyMachineItemPrice:string = String(candyMachineRawData.state.price.toNumber() / 1000000000);
@@ -137,24 +114,40 @@ const getCandyMachineState = async (
     var candyMachineIsActive:string = String(candyMachineRawData.state.isActive);
     var candyMachineIsSoldOut:string = String(candyMachineRawData.state.isSoldOut);
     var candyMachineTokenMint:string = String(candyMachineRawData.state.tokenMint);
+    var candyMachineHiddenSettingsName:string = String("");
+    var candyMachineHiddenSettingsUri:string = String("");
     if(candyMachineRawData.state.hiddenSettings != null){
-      var candyMachineHiddenSettingsName:string = String(candyMachineRawData.state.hiddenSettings.name);
+      candyMachineHiddenSettingsName = String(candyMachineRawData.state.hiddenSettings.name);
       if(candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpeg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".png") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".gif")){
-        var candyMachineHiddenSettingsUri:string = String(candyMachineRawData.state.hiddenSettings.uri);
+        candyMachineHiddenSettingsUri = String(candyMachineRawData.state.hiddenSettings.uri);
       }
       else {
         var metaDataFetched = await getMetaDataFromUrl(candyMachineRawData.state.hiddenSettings.uri);
-        var candyMachineHiddenSettingsUri:string = String(metaDataFetched.image);
+        candyMachineHiddenSettingsUri = String(metaDataFetched.image);
       }
     }
     else {
-      var candyMachineHiddenSettingsName:string = "Collection Name Not found";
-      var candyMachineHiddenSettingsUri:string = "https://upload.wikimedia.org/wikipedia/commons/b/b9/Solana_logo.png";
+      var configLinesFetched = false;
+      while(!configLinesFetched){
+        var array_of_transactions = await solana.getSignaturesForAddress(candyMachineRawData.id, {limit: 20,commitment: "finalized"});
+        if(array_of_transactions.length > 1){
+          for (const element of array_of_transactions) {
+            let getTransaction = await solana.getTransaction(element.signature);
+            if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")){
+                console.log("Log : AddConfigLines found", getTransaction);
+                console.log(getTransaction.transaction.message.serialize());
+                candyMachineHiddenSettingsName = String(candyMachineRawData.state.hiddenSettings.name);
+                candyMachineHiddenSettingsUri = String(candyMachineRawData.state.hiddenSettings.uri);
+                configLinesFetched = true;
+            }
+        }
+        }
+      }
     }
     if (candyMachineRawData.state.whitelistMintSettings != null){
       candyMachineTokenMint = String(candyMachineRawData.state.whitelistMintSettings.mint.toString());
     }
-    var candyMachineDataProcessed = {
+    return {
       id: candyMachineId,
       price: candyMachineItemPrice,
       itemsAvailable: candyMachineItemsAvailable,
@@ -167,7 +160,6 @@ const getCandyMachineState = async (
       hiddenSettingsName : candyMachineHiddenSettingsName,
       hiddenSettingsUri : candyMachineHiddenSettingsUri,
     };
-    return candyMachineDataProcessed;
 }
 
 async function getMetaDataFromUrl(url: string) {
