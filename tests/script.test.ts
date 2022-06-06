@@ -1,23 +1,16 @@
-import {getCandyMachineState, wallet, processCandyMachineData} from '../built/script';
-import {getMetaData, getCollectionPDA} from '../src/script';
+//import {getCandyMachineState, wallet, processCandyMachineData} from '../built/script';
+import {getConfigLines} from '../src/script';
 require('dotenv').config()
 const web3 = require("@solana/web3.js");
 const solana = new web3.Connection(process.env.RPC_URL);
 
-test ('should_getCollectionPDA_return_collectionPDA', async () => {
-    var candyMachineId = "831mHTnPed4DYXoeMEd9BkjhoUbPk4F4apZNJTLwvg4F";
-    const collectionPDA = await getCollectionPDA(new web3.PublicKey(candyMachineId));
-    console.log(collectionPDA);
-    console.log(collectionPDA[0].toString());
-    console.log(collectionPDA[1].toString());
+test ('should_getConfigLines_return_array_of_strings', async () => {
+    var candyMachineId = "5T3gzTE8jssuERXsRXX96jrYheV91GWY3HtBQzSBSnUV";
+    const lines = await getConfigLines(new web3.PublicKey(candyMachineId));
+    expect(lines).toBe(true);
 });
 
-test('should_getMetaData_return_correct_data', async () => {
-    var candyMachineId = "831mHTnPed4DYXoeMEd9BkjhoUbPk4F4apZNJTLwvg4F";
-    const metaData = await getMetaData(new web3.PublicKey(candyMachineId));
-    console.log(metaData.toString());
-});
-
+/*
 test ('should_getCandyMachineState_when_WLMintSettings_is_set_succeed', async () => {
     var candyMachineId = "BHAvq6FgD37BrTspsZ56NWZcKBe6MSxSqBu98eZoiZ37";
     var candyMachineState = await getCandyMachineState(wallet, new web3.PublicKey(candyMachineId), solana);
@@ -49,3 +42,5 @@ test ('should_getCandyMachineState_when_hiddenSettingsUriIsUrl_is_set_succeed', 
     var candyMachineState = await getCandyMachineState(wallet, new web3.PublicKey(candyMachineId), solana);
     expect(candyMachineState.state.hiddenSettings.uri).toBe("https://evopolis.io/");
 });
+
+*/

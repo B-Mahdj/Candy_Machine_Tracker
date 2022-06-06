@@ -127,22 +127,7 @@ const getCandyMachineState = async (
       }
     }
     else {
-      var configLinesFetched = false;
-      while(!configLinesFetched){
-        var array_of_transactions = await solana.getSignaturesForAddress(candyMachineRawData.id, {limit: 20,commitment: "finalized"});
-        if(array_of_transactions.length > 1){
-          for (const element of array_of_transactions) {
-            let getTransaction = await solana.getTransaction(element.signature);
-            if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")){
-                console.log("Log : AddConfigLines found", getTransaction);
-                console.log(getTransaction.transaction.message.serialize());
-                candyMachineHiddenSettingsName = String(candyMachineRawData.state.hiddenSettings.name);
-                candyMachineHiddenSettingsUri = String(candyMachineRawData.state.hiddenSettings.uri);
-                configLinesFetched = true;
-            }
-        }
-        }
-      }
+      while(!getConfigLines(candyMachineId)){}
     }
     if (candyMachineRawData.state.whitelistMintSettings != null){
       candyMachineTokenMint = String(candyMachineRawData.state.whitelistMintSettings.mint.toString());
@@ -160,6 +145,21 @@ const getCandyMachineState = async (
       hiddenSettingsName : candyMachineHiddenSettingsName,
       hiddenSettingsUri : candyMachineHiddenSettingsUri,
     };
+}
+
+export async function getConfigLines(pubKey){
+  var array_of_transactions = await solana.getSignaturesForAddress(pubKey, {limit: 20,commitment: "finalized"});
+  if(array_of_transactions.length > 1){
+    for (const element of array_of_transactions) {
+      let getTransaction = await solana.getTransaction(element.signature);
+      if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")){
+          console.log("Log : AddConfigLines found", getTransaction);
+          console.log(getTransaction.transaction.message.serialize());
+          return true;
+      }
+    }
+    return false;
+  }
 }
 
 async function getMetaDataFromUrl(url: string) {
