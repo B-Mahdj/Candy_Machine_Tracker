@@ -6,6 +6,10 @@ export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
   process.env.CANDY_MACHINE_PROGRAM_ID,
 );
 
+const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
+  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
+);
+
 const keypair = new anchor.web3.Keypair();
 export const wallet = new anchor.Wallet(keypair);
 
@@ -106,6 +110,21 @@ const getCandyMachineState = async (
       [Buffer.from('collection'), candyMachineAddress.toBuffer()],
       CANDY_MACHINE_PROGRAM,
     );
+  };
+
+  export const getMetaData = async (
+    mint: anchor.web3.PublicKey,
+  ): Promise<anchor.web3.PublicKey> => {
+    return (
+      await anchor.web3.PublicKey.findProgramAddress(
+        [
+          Buffer.from('metadata'),
+          TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+          mint.toBuffer(),
+        ],
+        TOKEN_METADATA_PROGRAM_ID,
+      )
+    )[0];
   };
 
   async function processCandyMachineData (candyMachineRawData){
