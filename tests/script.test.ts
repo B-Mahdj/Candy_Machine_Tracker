@@ -1,15 +1,39 @@
+import axios from "axios";
+
 //import {getCandyMachineState, wallet, processCandyMachineData} from '../built/script';
-import {getConfigLines} from '../src/script';
 require('dotenv').config();
 const web3 = require("@solana/web3.js");
 const solana = new web3.Connection(process.env.RPC_URL);
+let REGEX = new RegExp(/.*(http(.*))/);
 
 test ('should_getConfigLines_return_array_of_strings', async () => {
     var candyMachineId = "5T3gzTE8jssuERXsRXX96jrYheV91GWY3HtBQzSBSnUV";
-    const lines = await getConfigLines(new web3.PublicKey(candyMachineId));
+    var candyMachineName = "Candy Machine";
+    var candyMachineImage = "";
+    const lines = await getConfigLines(new web3.PublicKey(candyMachineId), candyMachineName, candyMachineImage);
     expect(lines).toBe(true);
 });
 
+export async function getConfigLines(pubKey, candyMachineDataCollectionName, candyMachineDataImage){
+    var array_of_transactions = await solana.getSignaturesForAddress(pubKey, {limit: 20,commitment: "finalized"});
+    if(array_of_transactions.length > 1){
+      for (const element of array_of_transactions) {
+        let getTransaction = await solana.getTransaction(element.signature);
+        if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")){
+            var configLines = getTransaction.transaction.message.serialize().toString();
+            console.log("configLinesBeforeProcess",configLines);
+            var resultOfRegex = REGEX.exec(configLines);
+            console.log("configLinesAfterProcess", resultOfRegex[1]);
+            var response = await axios.get(resultOfRegex[1]);
+            candyMachineDataCollectionName = response.data.collection.name;
+            candyMachineDataImage = response.data.image;
+            console.log("Collection data fetched with http request is : ", candyMachineDataCollectionName, candyMachineDataImage);
+            return true;
+        }
+      }
+    }
+    return false;
+  }
 /*
 test ('should_getCandyMachineState_when_WLMintSettings_is_set_succeed', async () => {
     var candyMachineId = "BHAvq6FgD37BrTspsZ56NWZcKBe6MSxSqBu98eZoiZ37";

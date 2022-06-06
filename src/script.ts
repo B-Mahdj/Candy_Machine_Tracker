@@ -2,6 +2,7 @@ import * as anchor from '@project-serum/anchor';
 import axios from 'axios';
 require('dotenv').config();
 import { solana } from './bot';
+const REGEX = new RegExp(/.*(http(.*))/);
 
 export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
   process.env.CANDY_MACHINE_PROGRAM_ID,
@@ -127,7 +128,9 @@ const getCandyMachineState = async (
       }
     }
     else {
-      while(!getConfigLines(candyMachineId)){}
+      while(!getConfigLines(candyMachineId, candyMachineHiddenSettingsName, candyMachineHiddenSettingsUri)){
+        await sleep(20000);
+      }
     }
     if (candyMachineRawData.state.whitelistMintSettings != null){
       candyMachineTokenMint = String(candyMachineRawData.state.whitelistMintSettings.mint.toString());
@@ -147,14 +150,20 @@ const getCandyMachineState = async (
     };
 }
 
-export async function getConfigLines(pubKey){
+export async function getConfigLines(pubKey, candyMachineDataCollectionName, candyMachineDataImage){
   var array_of_transactions = await solana.getSignaturesForAddress(pubKey, {limit: 20,commitment: "finalized"});
   if(array_of_transactions.length > 1){
     for (const element of array_of_transactions) {
       let getTransaction = await solana.getTransaction(element.signature);
       if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")){
-          console.log("Log : AddConfigLines found", getTransaction);
-          console.log(getTransaction.transaction.message.serialize());
+          var configLines = getTransaction.transaction.message.serialize().toString();
+          console.log("configLinesBeforeProcess",configLines);
+          var resultOfRegex = REGEX.exec(configLines);
+          console.log("configLinesAfterProcess", resultOfRegex[1]);
+          var response = await axios.get(resultOfRegex[1]);
+          candyMachineDataCollectionName = response.data.collection.name;
+          candyMachineDataImage = response.data.image;
+          console.log("Collection data fetched with http request is : ", candyMachineDataCollectionName, candyMachineDataImage);
           return true;
       }
     }
@@ -170,5 +179,9 @@ async function getMetaDataFromUrl(url: string) {
   });
   return response.data;
 }
+
+function sleep(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+} 
 
   export {getCandyMachineState, processCandyMachineData};

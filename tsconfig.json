@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "outDir": "./built",
+    "outDir": "built",
     "allowJs": true,
     "target": "es5"
   },

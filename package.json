@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "tsc ./src/script.ts",
+    "start": "tsc src/test.ts",
     "test": "jest"
   },
   "author": "",
