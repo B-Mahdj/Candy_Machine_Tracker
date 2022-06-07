@@ -123,8 +123,9 @@ const getCandyMachineState = async (
         candyMachineHiddenSettingsUri = String(candyMachineRawData.state.hiddenSettings.uri);
       }
       else {
-        var metaDataFetched = await getMetaDataFromUrl(candyMachineRawData.state.hiddenSettings.uri);
-        candyMachineHiddenSettingsUri = String(metaDataFetched.image);
+        while(!getConfigLines(candyMachineId, candyMachineHiddenSettingsName, candyMachineHiddenSettingsUri)){
+          await sleep(20000);
+        }
       }
     }
     else {
@@ -169,15 +170,6 @@ export async function getConfigLines(pubKey, candyMachineDataCollectionName, can
     }
   }
   return false;
-}
-
-async function getMetaDataFromUrl(url: string) {
-  const response = await axios.get(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return response.data;
 }
 
 function sleep(time) {
