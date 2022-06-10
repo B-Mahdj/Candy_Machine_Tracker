@@ -3,6 +3,7 @@ import axios from 'axios';
 require('dotenv').config();
 import { solana } from './bot';
 const REGEX = new RegExp(/.*(http(.*))/);
+const NUMBER_RETRIES_FOR_GET_CONFIG_LINES = 3;
 
 export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
   process.env.CANDY_MACHINE_PROGRAM_ID,
@@ -53,14 +54,8 @@ interface CandyMachineState {
     uri: string;
     hash: Uint8Array;
   };
-  retainAuthority: boolean;
+  retainAuthority: boolean | null;
 }
-
-type ExpectedResponseUri = {
-  name: string;
-  description: string;
-  image: string;
-};
 
 const getCandyMachineState = async (
     anchorWallet: anchor.Wallet,
@@ -108,7 +103,12 @@ const getCandyMachineState = async (
   async function processCandyMachineData (candyMachineRawData){
     var candyMachineId:string = String(candyMachineRawData.id);
     var candyMachineItemPrice:string = String(candyMachineRawData.state.price.toNumber() / 1000000000);
-    var candyMachineGoLiveDate:string = String(new Date(candyMachineRawData.state.goLiveDate.toNumber() * 1000).toLocaleDateString("en-US"));
+    if(candyMachineRawData.state.goLiveDate !== null){
+      var candyMachineGoLiveDate:string = String(new Date(candyMachineRawData.state.goLiveDate.toNumber() * 1000).toLocaleDateString("en-US"));
+    }
+    else{
+      var candyMachineGoLiveDate:string = "Not set";
+    }
     var candyMachineItemsAvailable:string = String(candyMachineRawData.state.itemsAvailable);
     var candyMachineItemsRemaining:string = String(candyMachineRawData.state.itemsRemaining);
     var candyMachineIsWlOnly:string = String(candyMachineRawData.state.isWhitelistOnly);
@@ -123,18 +123,21 @@ const getCandyMachineState = async (
         candyMachineHiddenSettingsUri = String(candyMachineRawData.state.hiddenSettings.uri);
       }
       else {
-        while(!getConfigLines(candyMachineId, candyMachineHiddenSettingsName, candyMachineHiddenSettingsUri)){
-          await sleep(20000);
-        }
+        candyMachineHiddenSettingsUri = String(await getImageOfCandyMachineWithUri(candyMachineRawData.state.hiddenSettings.uri));
       }
     }
     else {
-      while(!getConfigLines(candyMachineId, candyMachineHiddenSettingsName, candyMachineHiddenSettingsUri)){
+      let retryCount = 0;
+      while(!await getConfigLines(candyMachineRawData.id, candyMachineHiddenSettingsName, candyMachineHiddenSettingsUri) && retryCount < NUMBER_RETRIES_FOR_GET_CONFIG_LINES){
         await sleep(20000);
+        retryCount++;
       }
     }
     if (candyMachineRawData.state.whitelistMintSettings != null){
       candyMachineTokenMint = String(candyMachineRawData.state.whitelistMintSettings.mint.toString());
+    }
+    if(candyMachineHiddenSettingsName == ""){
+      candyMachineHiddenSettingsName = String("Collection Name Not found");
     }
     return {
       id: candyMachineId,
@@ -151,7 +154,7 @@ const getCandyMachineState = async (
     };
 }
 
-export async function getConfigLines(pubKey, candyMachineDataCollectionName, candyMachineDataImage){
+export async function getConfigLines(pubKey:anchor.web3.PublicKey, candyMachineDataCollectionName, candyMachineDataImage){
   var array_of_transactions = await solana.getSignaturesForAddress(pubKey, {limit: 20,commitment: "finalized"});
   if(array_of_transactions.length > 1){
     for (const element of array_of_transactions) {
@@ -160,16 +163,33 @@ export async function getConfigLines(pubKey, candyMachineDataCollectionName, can
           var configLines = getTransaction.transaction.message.serialize().toString();
           console.log("configLinesBeforeProcess",configLines);
           var resultOfRegex = REGEX.exec(configLines);
-          console.log("configLinesAfterProcess", resultOfRegex[1]);
+          console.log("Link received for configLinesAfterProcess", resultOfRegex[1]);
           var response = await axios.get(resultOfRegex[1]);
-          candyMachineDataCollectionName = response.data.collection.name;
-          candyMachineDataImage = response.data.image;
+          console.log("Response Data received for axios call", response.data);
+          //Check if the field collection name exists in the response
+          if(response.data.collection !== undefined){
+            candyMachineDataCollectionName = String(response.data.collection.name);
+          }
+          else {
+            candyMachineDataCollectionName = String("Collection Name Not found");
+          }
+          if(response.data.image !== undefined){
+            candyMachineDataImage = String(response.data.image);
+          }
+          else {
+            candyMachineDataImage = String("");
+          }
           console.log("Collection data fetched with http request is : ", candyMachineDataCollectionName, candyMachineDataImage);
           return true;
       }
     }
   }
   return false;
+}
+
+async function getImageOfCandyMachineWithUri(uri:string){
+  var response = await axios.get(uri);
+  return response.data.image;
 }
 
 function sleep(time) {

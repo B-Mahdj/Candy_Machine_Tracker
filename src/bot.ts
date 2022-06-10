@@ -84,7 +84,7 @@ async function sendDataDiscord(candyMachineData){
             embed.addField("Token Mint", candyMachineData.tokenMint);
         }
         channel.send({ embeds: [embed] });
-        console.log("Log : Message sent to discord");
+        console.log("Log : Message sent to discord", embed);
     }
     else {
         console.log("Log : Message not sent to discord because it is not a new candy machine");
@@ -112,7 +112,7 @@ async function getCandyMachineIdFromInitializedCandyMachine(transactions){
 
 async function getNewSignaturesOfCandyMachineProgram(lastTransactionIdFetched){
     console.log("Log : getSignaturesForAdress will be called with params : ", lastTransactionIdFetched, publicKey);
-    let transactions_returned_from_call = await solana.getSignaturesForAddress(publicKey, {limit: 20, until: lastTransactionIdFetched, commitment: "finalized"});
+    let transactions_returned_from_call = await solana.getSignaturesForAddress(publicKey, {limit: 50, until: lastTransactionIdFetched, commitment: "finalized"});
     let transactions_to_return = [];
     for (const element of transactions_returned_from_call) {
         console.log("Transaction fetched ", element);
