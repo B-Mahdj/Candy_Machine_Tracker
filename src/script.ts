@@ -119,7 +119,8 @@ const getCandyMachineState = async (
     var candyMachineHiddenSettingsUri:string = String("");
     if(candyMachineRawData.state.hiddenSettings != null){
       candyMachineHiddenSettingsName = String(candyMachineRawData.state.hiddenSettings.name);
-      if(candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpeg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".png") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".gif")){
+      if(candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpeg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".png") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".gif") 
+      || candyMachineRawData.state.hiddenSettings.uri.endsWith(".bmp") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".tiff") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".tif") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".webp")){
         candyMachineHiddenSettingsUri = String(candyMachineRawData.state.hiddenSettings.uri);
       }
       else {
