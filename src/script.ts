@@ -1,16 +1,13 @@
+require('dotenv').config();
 import * as anchor from '@project-serum/anchor';
 import axios from 'axios';
-require('dotenv').config();
 import { solana } from './bot';
+
 const REGEX = new RegExp(/.*(http(.*))/);
 const NUMBER_RETRIES_FOR_GET_CONFIG_LINES = 3;
 
 export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
   process.env.CANDY_MACHINE_PROGRAM_ID,
-);
-
-const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
-  'metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s',
 );
 
 const keypair = new anchor.web3.Keypair();

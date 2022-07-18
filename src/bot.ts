@@ -1,10 +1,11 @@
+require('dotenv').config();
 import {getCandyMachineState, wallet, processCandyMachineData} from './script';
-require('dotenv').config()
 const web3 = require("@solana/web3.js");
 const Discord = require('discord.js');
 const CANDY_MACHINE_PROGRAM_ID = process.env.CANDY_MACHINE_PROGRAM_ID;
 const publicKey = new web3.PublicKey(CANDY_MACHINE_PROGRAM_ID);
 const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
+
 var unix_timestamp = getActualUnixTimestamp();
 var lastTransactionSignatureFetched = null;
 var transactionSentArrays:string[] = [];
