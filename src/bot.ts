@@ -36,7 +36,8 @@ client.login(DISCORD_TOKEN_BOT);
 async function main(signature: any) {
     console.log("Log : Main function started with signature : ", signature);
     const candyMachineId = await getCandyMachineId(signature);
-    let candyMachineRawData = await getCandyMachineState(wallet, candyMachineId, solana);
+    const candyMachineIdPubKey = new web3.PublicKey(candyMachineId);
+    let candyMachineRawData = await getCandyMachineState(wallet, candyMachineIdPubKey, solana);
     console.log("Candy machine raw data :", candyMachineRawData);
     let candyMachineDataProcessed = await processCandyMachineData(candyMachineRawData);
     console.log("CandyMachineData processed : ", candyMachineDataProcessed);
