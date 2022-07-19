@@ -1,12 +1,19 @@
 require('dotenv').config();
 import { getCandyMachineState, wallet, processCandyMachineData } from './script';
+const express = require('express');
 const web3 = require("@solana/web3.js");
 const Discord = require('discord.js');
 const CANDY_MACHINE_PROGRAM_ID = process.env.CANDY_MACHINE_PROGRAM_ID;
 const publicKeyOfCandyMachineProgram = new web3.PublicKey(CANDY_MACHINE_PROGRAM_ID);
 const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
+const hostname = 'localhost';
+const port = 3000;
 
 const transactionSentArrays: string[] = [];
+const app = express();
+
+
+app.listen(port, () => console.log(`App listening on port ${port}!`));
 
 export const solana = new web3.Connection(process.env.RPC_URL, {
     commitment: 'finalized',
@@ -95,12 +102,6 @@ async function sendDataDiscord(candyMachineData) {
     else {
         console.log("Log : Message not sent to discord because it is not a new candy machine");
     }
-}
-
-function getActualUnixTimestamp() {
-    let utc_timestamp = Math.floor(Date.now() / 1000);
-    console.log("Starting to look for candy machine since : ", utc_timestamp);
-    return utc_timestamp;
 }
 
 function sleep(time) {
