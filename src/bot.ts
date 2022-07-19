@@ -1,12 +1,11 @@
 require('dotenv').config();
-import { getCandyMachineState, wallet, processCandyMachineData } from './script';
+import { getCandyMachineState, wallet, processCandyMachineData, CandyMachineAccount } from './script';
 const express = require('express');
 const web3 = require("@solana/web3.js");
 const Discord = require('discord.js');
 const CANDY_MACHINE_PROGRAM_ID = process.env.CANDY_MACHINE_PROGRAM_ID;
 const publicKeyOfCandyMachineProgram = new web3.PublicKey(CANDY_MACHINE_PROGRAM_ID);
 const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
-const hostname = 'localhost';
 const port = 3000;
 
 const transactionSentArrays: string[] = [];

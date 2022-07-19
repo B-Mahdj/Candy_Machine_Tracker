@@ -97,7 +97,7 @@ const getCandyMachineState = async (
     };
   };
 
-  async function processCandyMachineData (candyMachineRawData){
+  async function processCandyMachineData (candyMachineRawData:CandyMachineAccount){
     var candyMachineId:string = String(candyMachineRawData.id);
     var candyMachineItemPrice:string = String(candyMachineRawData.state.price.toNumber() / 1000000000);
     if(candyMachineRawData.state.goLiveDate !== null){
