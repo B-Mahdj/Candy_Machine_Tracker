@@ -1,5 +1,5 @@
 require('dotenv').config();
-import { getCandyMachineState, wallet, processCandyMachineData, CandyMachineAccount } from './script';
+import { getCandyMachineState, wallet, processCandyMachineData } from './script';
 const express = require('express');
 const web3 = require("@solana/web3.js");
 const Discord = require('discord.js');
@@ -52,6 +52,7 @@ async function getCandyMachineId(signature: string) {
         if (transaction != null) {
             console.log("\nLog : Transaction found : ", transaction);
             console.log("\nLog : Transaction Accounts Keys : ", transaction.transaction.message.accountKeys);
+            console.log("\nLog : Transaction Accounts Keys returned : ", transaction.transaction.message.accountKeys[1]);
             return transaction.transaction.message.accountKeys[1];
         }
     }

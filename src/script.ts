@@ -4,7 +4,7 @@ import axios from 'axios';
 import { solana } from './bot';
 
 const REGEX = new RegExp(/.*(http(.*))/);
-const NUMBER_RETRIES_FOR_GET_CONFIG_LINES = 3;
+const NUMBER_RETRIES_FOR_GET_CONFIG_LINES = 60;
 
 export const CANDY_MACHINE_PROGRAM = new anchor.web3.PublicKey(
   process.env.CANDY_MACHINE_PROGRAM_ID,
@@ -98,22 +98,23 @@ const getCandyMachineState = async (
   };
 
   async function processCandyMachineData (candyMachineRawData:CandyMachineAccount){
-    var candyMachineId:string = String(candyMachineRawData.id);
-    var candyMachineItemPrice:string = String(candyMachineRawData.state.price.toNumber() / 1000000000);
+    let candyMachineId:string = String(candyMachineRawData.id);
+    let candyMachineItemPrice:string = String(candyMachineRawData.state.price.toNumber() / 1000000000);
+    let candyMachineGoLiveDate:string;
+    let candyMachineItemsAvailable:string = String(candyMachineRawData.state.itemsAvailable);
+    let candyMachineItemsRemaining:string = String(candyMachineRawData.state.itemsRemaining);
+    let candyMachineIsWlOnly:string = String(candyMachineRawData.state.isWhitelistOnly);
+    let candyMachineIsActive:string = String(candyMachineRawData.state.isActive);
+    let candyMachineIsSoldOut:string = String(candyMachineRawData.state.isSoldOut);
+    let candyMachineTokenMint:string = String(candyMachineRawData.state.tokenMint);
+    let candyMachineHiddenSettingsName:string = String("");
+    let candyMachineHiddenSettingsUri:string = String("");
     if(candyMachineRawData.state.goLiveDate !== null){
-      var candyMachineGoLiveDate:string = String(new Date(candyMachineRawData.state.goLiveDate.toNumber() * 1000).toLocaleDateString("en-US"));
+      candyMachineGoLiveDate = String(new Date(candyMachineRawData.state.goLiveDate.toNumber() * 1000).toLocaleDateString("en-US"));
     }
     else{
-      var candyMachineGoLiveDate:string = "Not set";
+      candyMachineGoLiveDate = "Not set";
     }
-    var candyMachineItemsAvailable:string = String(candyMachineRawData.state.itemsAvailable);
-    var candyMachineItemsRemaining:string = String(candyMachineRawData.state.itemsRemaining);
-    var candyMachineIsWlOnly:string = String(candyMachineRawData.state.isWhitelistOnly);
-    var candyMachineIsActive:string = String(candyMachineRawData.state.isActive);
-    var candyMachineIsSoldOut:string = String(candyMachineRawData.state.isSoldOut);
-    var candyMachineTokenMint:string = String(candyMachineRawData.state.tokenMint);
-    var candyMachineHiddenSettingsName:string = String("");
-    var candyMachineHiddenSettingsUri:string = String("");
     if(candyMachineRawData.state.hiddenSettings != null){
       candyMachineHiddenSettingsName = String(candyMachineRawData.state.hiddenSettings.name);
       if(candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpeg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".jpg") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".png") || candyMachineRawData.state.hiddenSettings.uri.endsWith(".gif") 
@@ -127,7 +128,7 @@ const getCandyMachineState = async (
     else {
       let retryCount = 0;
       while(!await getConfigLines(candyMachineRawData.id, candyMachineHiddenSettingsName, candyMachineHiddenSettingsUri) && retryCount < NUMBER_RETRIES_FOR_GET_CONFIG_LINES){
-        await sleep(20000);
+        await sleep(60000);
         retryCount++;
       }
     }
@@ -152,17 +153,17 @@ const getCandyMachineState = async (
     };
 }
 
-export async function getConfigLines(pubKey:anchor.web3.PublicKey, candyMachineDataCollectionName, candyMachineDataImage){
-  var array_of_transactions = await solana.getSignaturesForAddress(pubKey, {limit: 20,commitment: "finalized"});
+export async function getConfigLines(pubKey:anchor.web3.PublicKey, candyMachineDataCollectionName:string, candyMachineDataImage:string){
+  let array_of_transactions = await solana.getSignaturesForAddress(pubKey, {limit: 100,commitment: "finalized"});
   if(array_of_transactions.length > 1){
     for (const element of array_of_transactions) {
       let getTransaction = await solana.getTransaction(element.signature);
       if(getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")){
-          var configLines = getTransaction.transaction.message.serialize().toString();
+          let configLines = getTransaction.transaction.message.serialize().toString();
           console.log("configLinesBeforeProcess",configLines);
-          var resultOfRegex = REGEX.exec(configLines);
+          let resultOfRegex = REGEX.exec(configLines);
           console.log("Link received for configLinesAfterProcess", resultOfRegex[1]);
-          var response = await axios.get(resultOfRegex[1]);
+          let response = await axios.get(resultOfRegex[1]);
           console.log("Response Data received for axios call", response.data);
           //Check if the field collection name exists in the response
           if(response.data.collection !== undefined){
@@ -186,7 +187,7 @@ export async function getConfigLines(pubKey:anchor.web3.PublicKey, candyMachineD
 }
 
 async function getImageOfCandyMachineWithUri(uri:string){
-  var response = await axios.get(uri);
+  let response = await axios.get(uri);
   return response.data.image;
 }
 
