@@ -6,24 +6,21 @@ const CANDY_MACHINE_PROGRAM_ID = process.env.CANDY_MACHINE_PROGRAM_ID;
 const publicKeyOfCandyMachineProgram = new web3.PublicKey(CANDY_MACHINE_PROGRAM_ID);
 const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
 
-var unix_timestamp = getActualUnixTimestamp();
-var lastTransactionSignatureFetched = null;
-var transactionSentArrays: string[] = [];
+const transactionSentArrays: string[] = [];
 
-export const solana = new web3.Connection(web3.clusterApiUrl("devnet"), "confirmed");
+export const solana = new web3.Connection(process.env.RPC_URL, {
+    commitment: 'finalized',
+    wsEndpoint: 'wss://api.mainnet-beta.solana.com'
+});
+
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS] });
 
 client.login(DISCORD_TOKEN_BOT);
 
 (async () => {
-    const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'), {
-        commitment: 'finalized',
-        wsEndpoint: 'wss://api.mainnet-beta.solana.com'
-    });
-
-    connection.onLogs(publicKeyOfCandyMachineProgram, async (candyMachineLogs: { err: any; signature: any; log: any; }) => {
+    solana.onLogs(publicKeyOfCandyMachineProgram, async (candyMachineLogs: { err: any; signature: any; logs: any; }) => {
         console.log("Log : Received logs from Cndy Program : ", candyMachineLogs);
-        if(candyMachineLogs.err == null && candyMachineLogs.log.includes("Program log: Instruction: InitializeCandyMachine")){
+        if(candyMachineLogs.err == null && candyMachineLogs.logs.includes("Program log: Instruction: InitializeCandyMachine")){
             main(candyMachineLogs.signature);
         }
     }, 'finalized');
@@ -31,14 +28,27 @@ client.login(DISCORD_TOKEN_BOT);
 
 async function main(signature: any) {
     console.log("Log : Main function started with signature : ", signature);
-    
-
+    const candyMachineId = await getCandyMachineId(signature);
     let candyMachineRawData = await getCandyMachineState(wallet, candyMachineId, solana);
     console.log("Candy machine raw data :", candyMachineRawData);
     let candyMachineDataProcessed = await processCandyMachineData(candyMachineRawData);
     console.log("CandyMachineData processed : ", candyMachineDataProcessed);
     await sleep(5000);
     sendDataDiscord(candyMachineDataProcessed);
+}
+
+async function getCandyMachineId(signature: string) {
+    console.log("Log : Getting candy machine id from signature : ", signature);
+    let candyMachineId = null;
+    if (signature != null) {
+        const transaction = await solana.getTransaction(signature);
+        if (transaction != null) {
+            console.log("\nLog : Transaction found : ", transaction);
+            console.log("\nLog : Transaction Accounts Keys : ", transaction.transaction.message.accountKeys);
+            return transaction.transaction.message.accountKeys[1];
+        }
+    }
+    return candyMachineId;
 }
 
 async function sendDataDiscord(candyMachineData) {
@@ -51,7 +61,7 @@ async function sendDataDiscord(candyMachineData) {
     }
     if (newCandyMachine) {
         transactionSentArrays.push(candyMachineData.id);
-        var channel = await client.channels.fetch('733270130913443860');
+        const channel = await client.channels.fetch('733270130913443860');
         const embed = new Discord.MessageEmbed()
             .setColor(0x3498DB)
             .setTitle(candyMachineData.hiddenSettingsName)
@@ -88,7 +98,7 @@ async function sendDataDiscord(candyMachineData) {
 }
 
 function getActualUnixTimestamp() {
-    var utc_timestamp = Math.floor(Date.now() / 1000);
+    let utc_timestamp = Math.floor(Date.now() / 1000);
     console.log("Starting to look for candy machine since : ", utc_timestamp);
     return utc_timestamp;
 }
