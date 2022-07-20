@@ -35,6 +35,7 @@ client.login(DISCORD_TOKEN_BOT);
 async function main(signature: any) {
     console.log("Log : Main function started with signature : ", signature);
     const candyMachineId = await getCandyMachineId(signature);
+    console.log("Log : Candy machine id : ", candyMachineId);
     if(candyMachineId != null) {
         const candyMachineIdPubKey = new web3.PublicKey(candyMachineId);
         let candyMachineRawData = await getCandyMachineState(wallet, candyMachineIdPubKey, solana);
@@ -50,9 +51,12 @@ async function getCandyMachineId(signature: string) {
     console.log("Log : Getting candy machine id from signature : ", signature);
     let candyMachineId = null;
     if (signature != null) {
-        const transaction = await solana.getTransaction(signature);
+        let transaction = await solana.getTransaction(signature);
+        console.log("Log : Transaction found : ", transaction);
+        await sleep(5000);
+        transaction = await solana.getTransaction(signature);
+        console.log("Log : Transaction found after 5 seconds : ", transaction);
         if (transaction != null) {
-            console.log("Log : Transaction found : ", transaction);
             console.log("Log : Transaction Accounts Keys : ", transaction.transaction.message.accountKeys);
             console.log("Log : Transaction Accounts Keys returned : ", transaction.transaction.message.accountKeys[1]);
             return transaction.transaction.message.accountKeys[1];
