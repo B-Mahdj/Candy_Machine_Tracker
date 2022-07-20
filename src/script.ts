@@ -183,6 +183,7 @@ async function getCandyMachineCollectionName(data: any) {
   if (data.image !== undefined) {
     candyMachineDataCollectionName = (data.collection.name);
   }
+  console.log("candyMachineDataCollectionName found is ", candyMachineDataCollectionName);
   return candyMachineDataCollectionName;
 }
 
@@ -191,6 +192,7 @@ async function getCandyMachineNftImage(data: any) {
   if (data.image !== undefined) {
     candyMachineDataImage = (data.image);
   }
+  console.log("candyMachineDataImage found is ", candyMachineDataImage);
   return candyMachineDataImage;
 }
 

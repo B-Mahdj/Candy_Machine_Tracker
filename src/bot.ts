@@ -35,13 +35,15 @@ client.login(DISCORD_TOKEN_BOT);
 async function main(signature: any) {
     console.log("Log : Main function started with signature : ", signature);
     const candyMachineId = await getCandyMachineId(signature);
-    const candyMachineIdPubKey = new web3.PublicKey(candyMachineId);
-    let candyMachineRawData = await getCandyMachineState(wallet, candyMachineIdPubKey, solana);
-    console.log("Candy machine raw data :", candyMachineRawData);
-    let candyMachineDataProcessed = await processCandyMachineData(candyMachineRawData);
-    console.log("CandyMachineData processed : ", candyMachineDataProcessed);
-    await sleep(5000);
-    sendDataDiscord(candyMachineDataProcessed);
+    if(candyMachineId != null) {
+        const candyMachineIdPubKey = new web3.PublicKey(candyMachineId);
+        let candyMachineRawData = await getCandyMachineState(wallet, candyMachineIdPubKey, solana);
+        console.log("Candy machine raw data :", candyMachineRawData);
+        let candyMachineDataProcessed = await processCandyMachineData(candyMachineRawData);
+        console.log("CandyMachineData processed : ", candyMachineDataProcessed);
+        await sleep(5000);
+        sendDataDiscord(candyMachineDataProcessed);
+    }
 }
 
 async function getCandyMachineId(signature: string) {
@@ -50,9 +52,9 @@ async function getCandyMachineId(signature: string) {
     if (signature != null) {
         const transaction = await solana.getTransaction(signature);
         if (transaction != null) {
-            console.log("\nLog : Transaction found : ", transaction);
-            console.log("\nLog : Transaction Accounts Keys : ", transaction.transaction.message.accountKeys);
-            console.log("\nLog : Transaction Accounts Keys returned : ", transaction.transaction.message.accountKeys[1]);
+            console.log("Log : Transaction found : ", transaction);
+            console.log("Log : Transaction Accounts Keys : ", transaction.transaction.message.accountKeys);
+            console.log("Log : Transaction Accounts Keys returned : ", transaction.transaction.message.accountKeys[1]);
             return transaction.transaction.message.accountKeys[1];
         }
     }
