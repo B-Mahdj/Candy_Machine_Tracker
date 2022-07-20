@@ -32,8 +32,9 @@ client.login(DISCORD_TOKEN_BOT);
     }, 'finalized');
 })();
 
-async function main(signature: any) {
+async function main(signature: string) {
     console.log("Log : Main function started with signature : ", signature);
+    console.log(signature);
     const candyMachineId = await getCandyMachineId(signature);
     console.log("Log : Candy machine id : ", candyMachineId);
     if(candyMachineId != null) {
@@ -49,13 +50,10 @@ async function main(signature: any) {
 
 async function getCandyMachineId(signature: string) {
     console.log("Log : Getting candy machine id from signature : ", signature);
-    let candyMachineId = null;
+    let candyMachineId:string = null;
     if (signature != null) {
         let transaction = await solana.getTransaction(signature);
         console.log("Log : Transaction found : ", transaction);
-        await sleep(5000);
-        transaction = await solana.getTransaction(signature);
-        console.log("Log : Transaction found after 5 seconds : ", transaction);
         if (transaction != null) {
             console.log("Log : Transaction Accounts Keys : ", transaction.transaction.message.accountKeys);
             console.log("Log : Transaction Accounts Keys returned : ", transaction.transaction.message.accountKeys[1]);

@@ -180,7 +180,7 @@ export async function getConfigLinesData(pubKey: anchor.web3.PublicKey) {
 
 async function getCandyMachineCollectionName(data: any) {
   let candyMachineDataCollectionName: string = "";
-  if (data.collection.name !== undefined) {
+  if (data.collection !== undefined && data.collection.name !== undefined) {
     candyMachineDataCollectionName = (data.collection.name);
   }
   console.log("candyMachineDataCollectionName found is ", candyMachineDataCollectionName);
