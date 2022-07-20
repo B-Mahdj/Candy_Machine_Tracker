@@ -26,7 +26,7 @@ client.login(DISCORD_TOKEN_BOT);
 (async () => {
     solana.onLogs(publicKeyOfCandyMachineProgram, async (candyMachineLogs: { err: any; signature: any; logs: any; }) => {
         console.log("Log : Received logs from Cndy Program : ", candyMachineLogs);
-        if(candyMachineLogs.err == null && candyMachineLogs.logs.includes("Program log: Instruction: InitializeCandyMachine")){
+        if (candyMachineLogs.err == null && candyMachineLogs.logs.includes("Program log: Instruction: InitializeCandyMachine")) {
             main(candyMachineLogs.signature);
         }
     }, 'finalized');
