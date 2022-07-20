@@ -136,6 +136,9 @@ async function processCandyMachineData(candyMachineRawData: CandyMachineAccount)
     if (configLinesDataFetched != null) {
       candyMachineHiddenSettingsUri = await getCandyMachineNftImage(configLinesDataFetched);
       candyMachineHiddenSettingsName = await getCandyMachineCollectionName(configLinesDataFetched);
+      if(candyMachineHiddenSettingsName == "") {
+        candyMachineHiddenSettingsName = await getCandyMachineSymbol(configLinesDataFetched);
+      }
     }
   }
   if (candyMachineRawData.state.whitelistMintSettings != null) {
@@ -176,6 +179,15 @@ export async function getConfigLinesData(pubKey: anchor.web3.PublicKey) {
     }
   }
   return null;
+}
+
+async function getCandyMachineSymbol(data: any) {
+  let candyMachineDataSymbol: string = "";
+  if (data.symbol !== undefined) {
+    candyMachineDataSymbol = (data.symbol);
+  }
+  console.log("candyMachineDataSymbol found is ", candyMachineDataSymbol);
+  return candyMachineDataSymbol;
 }
 
 async function getCandyMachineCollectionName(data: any) {
