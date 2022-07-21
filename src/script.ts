@@ -167,6 +167,7 @@ export async function getConfigLinesData(pubKey: anchor.web3.PublicKey) {
   if (array_of_transactions.length > 1) {
     for (const element of array_of_transactions) {
       let getTransaction = await solana.getTransaction(element.signature);
+      console.log("getTransaction for ConfigLinesData " + JSON.stringify(getTransaction));
       if (getTransaction != null && getTransaction.meta.logMessages.includes("Program log: Instruction: AddConfigLines")) {
         let configLines = getTransaction.transaction.message.serialize().toString();
         console.log("configLinesBeforeProcess", configLines);
