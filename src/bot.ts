@@ -14,7 +14,7 @@ const app = express();
 
 app.listen(port, () => console.log(`App listening on port ${port}!`));
 
-export const solana = new web3.Connection(process.env.RPC_URL, {
+export const solana = new web3.Connection("https://api.mainnet-beta.solana.com", {
     commitment: 'finalized',
     wsEndpoint: 'wss://api.mainnet-beta.solana.com'
 });
