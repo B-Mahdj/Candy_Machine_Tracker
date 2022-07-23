@@ -44,7 +44,14 @@ async function main(signature: string) {
         let candyMachineDataProcessed = await processCandyMachineData(candyMachineRawData);
         console.log("CandyMachineData processed : ", candyMachineDataProcessed);
         await sleep(5000);
-        sendDataDiscord(candyMachineDataProcessed);
+
+        if(candyMachineRespectConditions(candyMachineDataProcessed)) {
+            console.log("Candy machine respect conditions");
+            sendDataDiscord(candyMachineDataProcessed);
+        }
+        else {
+            console.log("Candy machine does not respect conditions");
+        }
     }
 }
 
@@ -61,6 +68,15 @@ async function getCandyMachineId(signature: string) {
         }
     }
     return candyMachineId;
+}
+
+async function candyMachineRespectConditions(data:any){
+    if(data.itemsAvailable != 1){
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 async function sendDataDiscord(candyMachineData) {
