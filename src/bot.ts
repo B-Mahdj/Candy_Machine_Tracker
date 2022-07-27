@@ -4,6 +4,7 @@ const express = require('express');
 const web3 = require("@solana/web3.js");
 const Discord = require('discord.js');
 const CANDY_MACHINE_PROGRAM_ID = process.env.CANDY_MACHINE_PROGRAM_ID;
+const RPC_URL = process.env.RPC_URL;
 const publicKeyOfCandyMachineProgram = new web3.PublicKey(CANDY_MACHINE_PROGRAM_ID);
 const DISCORD_TOKEN_BOT = process.env.DISCORD_TOKEN_BOT;
 const port = 3000;
@@ -14,7 +15,7 @@ const app = express();
 
 app.listen(port, () => console.log(`App listening on port ${port}!`));
 
-export const solana = new web3.Connection("https://api.mainnet-beta.solana.com", {
+export const solana = new web3.Connection(RPC_URL, {
     commitment: 'finalized',
     wsEndpoint: 'wss://api.mainnet-beta.solana.com'
 });
